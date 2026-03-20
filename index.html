@@ -495,8 +495,9 @@ footer{
 <section class="hero">
   <!-- Background media (video if ready, else still) -->
   <div class="hero-bg-media" id="hero-media">
-    <video autoplay muted loop playsinline poster="optimus.jpg">
-      <source src="optimus.mp4" type="video/mp4"/>
+    <video autoplay muted loop playsinline preload="auto" poster="optimus.jpg"
+      x-webkit-airplay="deny" disableRemotePlayback>
+      <source src="optimus_mobile.mp4" type="video/mp4"/>
       <img src="optimus.jpg" alt="Optimus Prime"/>
     </video>
   </div>

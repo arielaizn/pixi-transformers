@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>PixiBot — AUTOBOT INTELLIGENCE NETWORK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --red:#e63312;--red2:#ff4500;--red3:#ff6b35;
+  --blue:#0af;--blue2:#00d4ff;--blue3:#7af4ff;
+  --gold:#ffd700;
+  --steel:#8ab4c9;--dark:#040810;
+  --darker:#020610;--card:rgba(8,22,42,0.9);
+  --border:rgba(0,180,255,0.2);
+  --text:#cde8ff;--muted:rgba(180,210,240,0.6);
+}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Rajdhani',sans-serif;
+  background:var(--dark);color:var(--text);
+  min-height:100vh;overflow-x:hidden;
+}
+
+/* ── BACKGROUND ── */
+.bg-layer{
+  position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse 120% 50% at 50% -5%,rgba(0,120,255,0.1) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 80% at 100% 50%,rgba(230,51,18,0.08) 0%,transparent 50%),
+    linear-gradient(180deg,#040810 0%,#020610 100%);
+}
+.bg-layer::before{
+  content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(0,180,255,0.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,180,255,0.035) 1px,transparent 1px);
+  background-size:50px 50px;
+  mask-image:radial-gradient(ellipse 100% 100% at 50% 50%,black 40%,transparent 100%);
+}
+
+/* Scanline */
+.scanline{
+  position:fixed;top:-5px;left:0;width:100%;height:2px;z-index:999;
+  pointer-events:none;opacity:0.25;
+  background:linear-gradient(90deg,transparent 0%,var(--blue2) 50%,transparent 100%);
+  animation:scanmove 5s linear infinite;
+}
+@keyframes scanmove{0%{top:-5px;opacity:0;}5%{opacity:0.25;}95%{opacity:0.25;}100%{top:100vh;opacity:0;}}
+
+.page{position:relative;z-index:1;}
+
+/* ── NAV ── */
+nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.9rem 2rem;
+  border-bottom:1px solid rgba(0,180,255,0.15);
+  background:rgba(2,6,14,0.95);
+  backdrop-filter:blur(16px);
+  position:sticky;top:0;z-index:100;
+}
+.nav-left{display:flex;align-items:center;gap:0.8rem;}
+.nav-logo-img{
+  width:38px;height:38px;object-fit:contain;
+  filter:drop-shadow(0 0 10px var(--blue2));
+}
+.nav-brand{
+  font-family:'Orbitron',sans-serif;font-weight:900;
+  font-size:1.05rem;letter-spacing:0.12em;color:#fff;
+}
+.nav-brand span{color:var(--blue2);}
+.nav-right{
+  font-family:'Orbitron',sans-serif;font-size:0.6rem;
+  letter-spacing:0.18em;color:rgba(0,180,255,0.6);
+  display:flex;align-items:center;gap:0.5rem;
+}
+.live-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:#22ff88;
+  box-shadow:0 0 6px #22ff88;
+  animation:livepulse 1.5s ease-in-out infinite;
+}
+@keyframes livepulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.4;transform:scale(0.7);}}
+
+/* ── HERO ── */
+.hero{
+  position:relative;
+  min-height:92vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;
+  padding:3rem 1.5rem;
+  overflow:hidden;
+}
+
+/* Optimus video/image fill */
+.hero-bg-media{
+  position:absolute;inset:0;z-index:0;
+  overflow:hidden;
+}
+.hero-bg-media video,
+.hero-bg-media img{
+  width:100%;height:100%;
+  object-fit:cover;
+  opacity:0.32;
+  filter:saturate(1.3) contrast(1.1);
+}
+.hero-bg-overlay{
+  position:absolute;inset:0;z-index:1;
+  background:
+    linear-gradient(0deg, var(--dark) 0%, transparent 40%, transparent 60%, var(--dark) 100%),
+    linear-gradient(90deg, var(--dark) 0%, transparent 30%, transparent 70%, var(--dark) 100%);
+}
+
+.hero-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:1.4rem;}
+
+.hero-badge{
+  font-family:'Orbitron',sans-serif;font-size:0.6rem;letter-spacing:0.25em;
+  color:var(--red2);border:1px solid rgba(255,69,0,0.4);
+  background:rgba(255,69,0,0.07);
+  padding:0.35rem 1rem;border-radius:2px;
+  animation:redblink 2.5s ease-in-out infinite;
+}
+@keyframes redblink{0%,100%{border-color:rgba(255,69,0,0.4);box-shadow:none;}50%{border-color:rgba(255,69,0,0.7);box-shadow:0 0 12px rgba(255,69,0,0.3);}}
+
+.hero-logo-wrap{
+  position:relative;
+  width:110px;height:110px;
+  display:flex;align-items:center;justify-content:center;
+}
+.hero-logo-wrap::before,.hero-logo-wrap::after{
+  content:'';position:absolute;border-radius:50%;
+  border:1px solid rgba(0,180,255,0.25);
+  animation:logoring 6s linear infinite;
+}
+.hero-logo-wrap::before{inset:0;}
+.hero-logo-wrap::after{inset:-14px;border-style:dashed;animation-duration:10s;animation-direction:reverse;}
+@keyframes logoring{from{transform:rotate(0);}to{transform:rotate(360deg);}}
+.hero-logo{
+  width:85px;height:85px;object-fit:contain;
+  filter:drop-shadow(0 0 16px var(--blue2)) drop-shadow(0 0 32px rgba(0,180,255,0.5));
+  animation:logofloat 4s ease-in-out infinite;
+}
+@keyframes logofloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+
+.hero-eyebrow{
+  font-family:'Orbitron',sans-serif;font-size:0.65rem;
+  letter-spacing:0.22em;color:var(--steel);
+  text-transform:uppercase;
+}
+
+h1{
+  font-family:'Orbitron',sans-serif;
+  font-size:clamp(2rem,5.5vw,3.5rem);
+  font-weight:900;line-height:1.12;
+  letter-spacing:-0.01em;
+  max-width:800px;
+  text-shadow:0 0 40px rgba(0,150,255,0.3);
+}
+.t-red{color:var(--red2);}
+.t-blue{
+  background:linear-gradient(90deg,var(--blue2),var(--blue3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.t-gold{color:var(--gold);}
+
+.hero-sub{
+  font-size:1.15rem;color:var(--muted);
+  max-width:560px;line-height:1.75;font-weight:600;
+}
+
+.hero-cta{
+  display:inline-flex;align-items:center;gap:0.6rem;
+  background:linear-gradient(135deg,#b91c0e,var(--red2));
+  color:#fff;font-family:'Orbitron',sans-serif;
+  font-weight:900;font-size:0.75rem;letter-spacing:0.18em;
+  text-transform:uppercase;
+  padding:1rem 2.2rem;border-radius:2px;
+  box-shadow:0 6px 28px rgba(230,51,18,0.45);
+  cursor:pointer;border:none;
+  transition:transform 0.15s,box-shadow 0.2s;
+  text-decoration:none;
+}
+.hero-cta:hover{transform:translateY(-2px);box-shadow:0 10px 36px rgba(230,51,18,0.65);}
+.hero-cta-arrow{font-size:1rem;}
+
+/* Stats bar */
+.stats-bar{
+  display:flex;gap:2.5rem;flex-wrap:wrap;justify-content:center;
+  padding:1rem 1.5rem;
+  border-top:1px solid var(--border);
+  border-bottom:1px solid var(--border);
+  background:rgba(0,10,25,0.6);
+  backdrop-filter:blur(8px);
+  font-family:'Orbitron',sans-serif;
+}
+.stat{text-align:center;}
+.stat-num{
+  font-size:1.6rem;font-weight:900;
+  background:linear-gradient(90deg,var(--blue2),var(--blue3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.stat-lbl{font-size:0.6rem;color:var(--muted);letter-spacing:0.15em;margin-top:0.1rem;}
+
+/* ── DIVIDER ── */
+.mech-div{
+  display:flex;align-items:center;gap:1rem;padding:0 1.5rem;
+  max-width:700px;margin:2.5rem auto 0;
+  font-family:'Orbitron',sans-serif;font-size:0.58rem;
+  letter-spacing:0.22em;color:rgba(0,180,255,0.5);
+}
+.mech-div::before,.mech-div::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,180,255,0.3),transparent);
+}
+
+/* ── FORM ── */
+.form-section{
+  max-width:680px;margin:0 auto;
+  padding:2rem 1.5rem 4rem;
+  display:flex;flex-direction:column;gap:1.5rem;
+}
+
+.form-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:4px;
+  overflow:hidden;
+  box-shadow:0 8px 40px rgba(0,0,0,0.4);
+}
+.form-card-header{
+  padding:1.2rem 1.8rem;
+  border-bottom:1px solid var(--border);
+  background:rgba(0,20,45,0.5);
+  display:flex;align-items:center;gap:0.7rem;
+}
+.form-header-icon{font-size:1.2rem;}
+.form-header-title{
+  font-family:'Orbitron',sans-serif;font-size:0.72rem;
+  letter-spacing:0.18em;color:var(--blue2);
+  font-weight:700;
+}
+.form-header-sub{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;letter-spacing:0.05em;}
+
+.form-body{padding:1.8rem;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.form-group{display:flex;flex-direction:column;gap:0.4rem;}
+.form-group.full{grid-column:1/-1;}
+
+label{
+  font-family:'Orbitron',sans-serif;
+  font-size:0.6rem;font-weight:700;
+  letter-spacing:0.15em;color:var(--steel);
+  text-transform:uppercase;
+}
+
+input,textarea,select{
+  background:rgba(0,15,35,0.85);
+  border:1px solid rgba(0,180,255,0.18);
+  border-radius:3px;
+  padding:0.78rem 1rem;
+  color:var(--text);font-size:0.97rem;
+  font-family:'Rajdhani',sans-serif;font-weight:600;
+  outline:none;width:100%;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  -webkit-appearance:none;
+}
+input::placeholder,textarea::placeholder{color:rgba(140,180,210,0.3);}
+input:focus,textarea:focus,select:focus{
+  border-color:var(--blue2);
+  box-shadow:0 0 0 2px rgba(0,180,255,0.12),inset 0 0 6px rgba(0,180,255,0.04);
+}
+select{cursor:pointer;}
+select option{background:#040810;color:var(--text);}
+textarea{resize:vertical;min-height:95px;line-height:1.6;}
+
+.submit-area{padding:0 1.8rem 1.8rem;}
+.btn-submit{
+  background:linear-gradient(135deg,#9a1509,var(--red2));
+  color:#fff;
+  font-family:'Orbitron',sans-serif;font-weight:900;
+  font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;
+  border:none;border-radius:3px;
+  padding:1.1rem 2rem;cursor:pointer;width:100%;
+  position:relative;overflow:hidden;
+  box-shadow:0 6px 24px rgba(230,51,18,0.4);
+  transition:transform 0.15s,box-shadow 0.2s;
+}
+.btn-submit::after{
+  content:'';position:absolute;top:0;left:-200%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);
+  animation:shimmer 2.5s ease-in-out infinite;
+}
+@keyframes shimmer{0%{left:-200%;}100%{left:200%;}}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 10px 32px rgba(230,51,18,0.6);}
+.btn-submit:active{transform:translateY(0);}
+
+/* Success */
+.success-panel{
+  display:none;flex-direction:column;align-items:center;
+  gap:1rem;padding:3rem 2rem;text-align:center;
+}
+.success-panel.show{display:flex;animation:fadein 0.4s ease;}
+@keyframes fadein{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.success-check{
+  width:60px;height:60px;border-radius:50%;
+  background:rgba(34,255,136,0.1);border:2px solid #22ff88;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.8rem;
+  box-shadow:0 0 20px rgba(34,255,136,0.3);
+}
+.success-title{
+  font-family:'Orbitron',sans-serif;font-size:0.9rem;
+  font-weight:900;color:#22ff88;letter-spacing:0.12em;
+}
+.success-sub{color:var(--muted);font-size:0.95rem;line-height:1.6;max-width:360px;}
+
+/* ── FEATURES ── */
+.features-section{
+  max-width:680px;margin:0 auto;
+  padding:0 1.5rem 5rem;
+}
+.section-title{
+  font-family:'Orbitron',sans-serif;font-size:0.7rem;
+  letter-spacing:0.2em;color:var(--blue2);
+  text-align:center;margin-bottom:1.5rem;
+  text-transform:uppercase;
+}
+.feats-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:1rem;
+}
+.feat{
+  background:rgba(5,18,38,0.85);
+  border:1px solid rgba(0,180,255,0.13);
+  border-radius:4px;padding:1.4rem;
+  transition:border-color 0.2s,transform 0.2s,box-shadow 0.2s;
+}
+.feat:hover{
+  border-color:rgba(0,180,255,0.35);
+  transform:translateY(-3px);
+  box-shadow:0 8px 24px rgba(0,0,0,0.3);
+}
+.feat-icon{font-size:1.6rem;margin-bottom:0.7rem;}
+.feat-title{
+  font-family:'Orbitron',sans-serif;font-size:0.68rem;
+  font-weight:700;color:var(--blue2);letter-spacing:0.1em;
+  margin-bottom:0.4rem;
+}
+.feat-desc{font-size:0.88rem;color:var(--muted);line-height:1.65;}
+
+/* ── FOOTER ── */
+footer{
+  text-align:center;padding:1.5rem;
+  border-top:1px solid rgba(0,180,255,0.1);
+  font-family:'Orbitron',sans-serif;font-size:0.58rem;
+  letter-spacing:0.15em;color:rgba(0,180,255,0.35);
+}
+
+/* ── ADMIN ── */
+.admin-btn{
+  position:fixed;bottom:1.5rem;left:1.5rem;z-index:300;
+  width:38px;height:38px;border-radius:50%;
+  background:rgba(2,8,18,0.9);border:1px solid rgba(0,180,255,0.2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:0.9rem;
+  opacity:0.35;transition:opacity 0.2s,box-shadow 0.2s;
+}
+.admin-btn:hover{opacity:1;box-shadow:0 0 14px rgba(0,180,255,0.4);}
+
+.overlay{
+  display:none;position:fixed;inset:0;z-index:400;
+  background:rgba(2,6,14,0.96);backdrop-filter:blur(10px);
+  align-items:center;justify-content:center;padding:1rem;
+}
+.overlay.open{display:flex;animation:fadein 0.3s ease;}
+
+.admin-modal{
+  background:var(--card);
+  border:1px solid rgba(0,180,255,0.25);
+  border-radius:5px;
+  width:min(600px,98vw);
+  max-height:90vh;overflow-y:auto;
+  box-shadow:0 0 60px rgba(0,0,0,0.6);
+  position:relative;
+}
+.admin-modal-head{
+  padding:1.2rem 1.5rem;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(0,10,28,0.7);
+  position:sticky;top:0;z-index:1;
+}
+.admin-modal-head-title{
+  font-family:'Orbitron',sans-serif;font-size:0.68rem;
+  letter-spacing:0.18em;color:var(--blue2);
+}
+.close-btn{
+  background:none;border:none;color:var(--muted);
+  font-size:1.1rem;cursor:pointer;padding:0.2rem 0.4rem;
+  border-radius:3px;transition:color 0.2s;
+}
+.close-btn:hover{color:var(--red2);}
+
+.admin-body{padding:1.5rem;}
+.access-form{display:flex;flex-direction:column;gap:0.8rem;}
+.access-row{display:flex;gap:0.6rem;}
+.access-row input{flex:1;}
+.access-btn{
+  background:linear-gradient(135deg,var(--blue),var(--blue2));
+  border:none;color:#000;
+  font-family:'Orbitron',sans-serif;font-weight:900;
+  font-size:0.65rem;letter-spacing:0.12em;
+  padding:0.8rem 1.2rem;border-radius:3px;cursor:pointer;
+  white-space:nowrap;
+}
+.err-msg{
+  color:#f87171;font-size:0.8rem;
+  display:none;font-weight:600;letter-spacing:0.05em;
+}
+.err-msg.show{display:block;}
+
+/* Admin data panel */
+.data-panel{display:none;}
+.data-panel.show{display:block;}
+.data-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;
+}
+.data-count{
+  font-family:'Orbitron',sans-serif;font-size:0.65rem;
+  color:#22ff88;letter-spacing:0.1em;
+}
+.csv-btn{
+  background:rgba(0,180,255,0.1);
+  border:1px solid var(--border);
+  color:var(--blue2);
+  font-family:'Orbitron',sans-serif;font-size:0.6rem;
+  letter-spacing:0.1em;padding:0.45rem 0.9rem;
+  border-radius:3px;cursor:pointer;
+  transition:background 0.2s;
+}
+.csv-btn:hover{background:rgba(0,180,255,0.2);}
+
+.data-table-wrap{overflow-x:auto;}
+.data-table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+.data-table th{
+  text-align:right;padding:0.5rem 0.7rem;
+  font-family:'Orbitron',sans-serif;font-size:0.55rem;
+  letter-spacing:0.1em;color:var(--steel);
+  border-bottom:1px solid var(--border);
+  white-space:nowrap;
+}
+.data-table td{
+  padding:0.6rem 0.7rem;
+  border-bottom:1px solid rgba(0,180,255,0.06);
+  color:var(--text);vertical-align:top;
+}
+.data-table tr:hover td{background:rgba(0,180,255,0.03);}
+.empty-state{
+  text-align:center;padding:2.5rem;
+  color:var(--muted);font-size:0.9rem;
+}
+
+@media(max-width:560px){
+  .form-grid{grid-template-columns:1fr;}
+  nav{padding:0.8rem 1rem;}
+  .stats-bar{gap:1.5rem;}
+  h1{font-size:1.9rem;}
+}
+</style>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="bg-layer"></div>
+
+<div class="page">
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <img class="nav-logo-img" src="pixi-logo.png" alt="Pixi"/>
+    <div class="nav-brand">PIXI<span>BOT</span></div>
+  </div>
+  <div class="nav-right">
+    <div class="live-dot"></div>
+    AUTOBOT INTEL NETWORK ONLINE
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <!-- Background media (video if ready, else still) -->
+  <div class="hero-bg-media" id="hero-media">
+    <video autoplay muted loop playsinline poster="optimus.jpg">
+      <source src="optimus.mp4" type="video/mp4"/>
+      <img src="optimus.jpg" alt="Optimus Prime"/>
+    </video>
+  </div>
+  <div class="hero-bg-overlay"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge">⚠ AUTOBOT RECRUITMENT PROTOCOL — ACTIVE ⚠</div>
+
+    <div class="hero-logo-wrap">
+      <img class="hero-logo" src="pixi-logo.png" alt="Pixi"/>
+    </div>
+
+    <div class="hero-eyebrow">// CLASSIFIED INTELLIGENCE BRIEFING //</div>
+
+    <h1>
+      הנשק <span class="t-red">החדש</span> של<br/>
+      <span class="t-blue">יצירת תוכן</span> נחת
+    </h1>
+
+    <p class="hero-sub">
+      כמו שאופטימוס פריים שינה את פני המלחמה — PixiBot משנה את פני השיווק.
+      AI שהופך הודעת קול לסרטון מקצועי 4K תוך שניות. בלי עורך, בלי ממשק.
+    </p>
+
+    <a class="hero-cta" href="#register">
+      הצטרף לצוות הבטא
+      <span class="hero-cta-arrow">▼</span>
+    </a>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num" id="cnt">0</div>
+    <div class="stat-lbl">Autobots Recruited</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">30s</div>
+    <div class="stat-lbl">Avg Generation Time</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">4K</div>
+    <div class="stat-lbl">Output Quality</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">100%</div>
+    <div class="stat-lbl">AI Powered</div>
+  </div>
+</div>
+
+<!-- FORM -->
+<div class="mech-div">REGISTER · AUTOBOT CLEARANCE REQUIRED · LIMITED ACCESS</div>
+
+<div class="form-section" id="register">
+  <div class="form-card">
+    <div class="form-card-header">
+      <div class="form-header-icon">⚡</div>
+      <div>
+        <div class="form-header-title">// AUTOBOT REGISTRATION PROTOCOL //</div>
+        <div class="form-header-sub">הרשם לגישה מוקדמת — Autobots בלבד</div>
+      </div>
+    </div>
+
+    <form id="wl-form">
+      <div class="form-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>שם מלא</label>
+            <input type="text" id="f-name" placeholder="Optimus Prime" required/>
+          </div>
+          <div class="form-group">
+            <label>כתובת אימייל</label>
+            <input type="email" id="f-email" placeholder="optimus@autobots.com" required/>
+          </div>
+          <div class="form-group">
+            <label>מספר וואטסאפ</label>
+            <input type="tel" id="f-phone" placeholder="+972501234567" required/>
+          </div>
+          <div class="form-group">
+            <label>סוג עסק</label>
+            <select id="f-type">
+              <option value="">-- בחר --</option>
+              <option>עסק קטן / בינוני</option>
+              <option>פרילנסר / קריאטיב</option>
+              <option>סוכנות שיווק</option>
+              <option>אי-קומרס / חנות</option>
+              <option>תוכן / יוטיובר</option>
+              <option>אחר</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label>למה אתה רוצה להשתמש ב-PixiBot?</label>
+            <textarea id="f-reason" placeholder="ספר לנו — מה אתה רוצה ליצור? איזה תוכן? לאיזה פלטפורמה?"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="submit-area">
+        <button type="submit" class="btn-submit">▶ TRANSMIT — הצטרף לצוות הבטא</button>
+      </div>
+    </form>
+
+    <div class="success-panel" id="success-panel">
+      <div class="success-check">⚡</div>
+      <div class="success-title">TRANSMISSION CONFIRMED — AUTOBOT</div>
+      <div class="success-sub">
+        נרשמת בהצלחה לרשימת הבטא של PixiBot.<br/>
+        כשהגישה תיפתח — אתה תהיה הראשון לדעת, Autobot.
+      </div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="features-section" style="padding:0;">
+    <div class="section-title">// AUTOBOT CAPABILITIES //</div>
+    <div class="feats-grid">
+      <div class="feat">
+        <div class="feat-icon">🎙️</div>
+        <div class="feat-title">Voice → Video</div>
+        <div class="feat-desc">שלח הודעת קול — PixiBot מייצר סרטון מלא עם קריינות, מוזיקה ואנימציה.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-title">30 שניות</div>
+        <div class="feat-desc">מהרעיון לסרטון מוכן לפרסום — מהיר מכל עורך אנושי.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">📱</div>
+        <div class="feat-title">רק וואטסאפ</div>
+        <div class="feat-desc">אין אפליקציות, אין ממשק. הכל בתוך השיחה שלך.</div>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">🎬</div>
+        <div class="feat-title">4K Ready</div>
+        <div class="feat-desc">מוכן לאינסטגרם, טיקטוק, יוטיוב ופייסבוק — בלחיצה אחת.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  © 2026 PIXIBOT INTELLIGENCE NETWORK · <a href="https://pixibot.app" style="color:rgba(0,180,255,0.5);text-decoration:none;">PIXIBOT.APP</a> · ALL SPARKS RESERVED
+</footer>
+</div>
+
+<!-- Admin button -->
+<div class="admin-btn" onclick="openAdmin()" title="Admin">⚙</div>
+
+<!-- Admin overlay -->
+<div class="overlay" id="admin-overlay">
+  <div class="admin-modal">
+    <div class="admin-modal-head">
+      <div class="admin-modal-head-title">// SECURE INTELLIGENCE CHANNEL //</div>
+      <button class="close-btn" onclick="closeAdmin()">✕</button>
+    </div>
+    <div class="admin-body">
+      <!-- Login -->
+      <div id="access-form-wrap">
+        <div class="access-form">
+          <div style="font-family:'Orbitron',sans-serif;font-size:0.65rem;color:var(--muted);letter-spacing:0.1em;margin-bottom:0.3rem;">ENTER ACCESS CODE</div>
+          <div class="access-row">
+            <input type="password" id="admin-code" placeholder="••••••••••••" onkeydown="if(event.key==='Enter')checkAccess()"/>
+            <button class="access-btn" onclick="checkAccess()">ENTER</button>
+          </div>
+          <div class="err-msg" id="err-msg">⛔ ACCESS DENIED — INVALID CLEARANCE CODE</div>
+        </div>
+      </div>
+
+      <!-- Data panel -->
+      <div class="data-panel" id="data-panel">
+        <div class="data-header">
+          <div class="data-count" id="data-count">LOADING...</div>
+          <button class="csv-btn" onclick="exportCSV()">⬇ EXPORT CSV</button>
+        </div>
+        <div class="data-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>תאריך</th>
+                <th>שם</th>
+                <th>אימייל</th>
+                <th>וואטסאפ</th>
+                <th>סוג עסק</th>
+                <th>סיבה</th>
+              </tr>
+            </thead>
+            <tbody id="data-tbody"></tbody>
+          </table>
+        </div>
+        <div class="empty-state" id="empty-state" style="display:none;">אין נרשמים עדיין — הרשת שקטה.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DB = 'pixi_leads_v2';
+const CODE = 'pixibot2026';
+
+// ── Counter ──
+(function(){
+  const el = document.getElementById('cnt');
+  const target = 312;
+  let v = 0;
+  const step = target / 80;
+  const t = setInterval(()=>{
+    v = Math.min(v + step, target);
+    el.textContent = Math.floor(v).toLocaleString();
+    if(v >= target) clearInterval(t);
+  }, 18);
+})();
+
+// ── Form submit ──
+document.getElementById('wl-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  const d = {
+    date: new Date().toLocaleString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+    name:   document.getElementById('f-name').value.trim(),
+    email:  document.getElementById('f-email').value.trim(),
+    phone:  document.getElementById('f-phone').value.trim(),
+    type:   document.getElementById('f-type').value || 'לא צוין',
+    reason: document.getElementById('f-reason').value.trim() || '—',
+  };
+  if(!d.name || !d.email || !d.phone) return;
+
+  // Save locally
+  const leads = JSON.parse(localStorage.getItem(DB) || '[]');
+  leads.push(d);
+  localStorage.setItem(DB, JSON.stringify(leads));
+
+  // Try backend
+  fetch('/api/waitlist', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(d)
+  }).catch(()=>{});
+
+  document.getElementById('wl-form').style.display = 'none';
+  document.getElementById('success-panel').classList.add('show');
+
+  // Bump counter
+  const cnt = document.getElementById('cnt');
+  const cur = parseInt(cnt.textContent.replace(/,/g,''));
+  let v2 = cur;
+  const t = setInterval(()=>{ cnt.textContent = (++v2).toLocaleString(); if(v2 >= cur+1) clearInterval(t); }, 50);
+});
+
+// ── Admin ──
+function openAdmin(){
+  document.getElementById('admin-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('admin-code').focus(), 100);
+}
+function closeAdmin(){
+  document.getElementById('admin-overlay').classList.remove('open');
+  document.getElementById('access-form-wrap').style.display = 'block';
+  document.getElementById('data-panel').classList.remove('show');
+  document.getElementById('admin-code').value = '';
+  document.getElementById('err-msg').classList.remove('show');
+}
+function checkAccess(){
+  if(document.getElementById('admin-code').value === CODE){
+    document.getElementById('access-form-wrap').style.display = 'none';
+    document.getElementById('data-panel').classList.add('show');
+    renderData();
+  } else {
+    document.getElementById('err-msg').classList.add('show');
+    document.getElementById('admin-code').value = '';
+    document.getElementById('admin-code').focus();
+  }
+}
+function renderData(){
+  const leads = JSON.parse(localStorage.getItem(DB)||'[]');
+  const tbody = document.getElementById('data-tbody');
+  const empty = document.getElementById('empty-state');
+  document.getElementById('data-count').textContent = `TOTAL RECRUITS: ${leads.length}`;
+  tbody.innerHTML = '';
+  if(!leads.length){ empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  [...leads].reverse().forEach(l=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="white-space:nowrap;">${l.date}</td>
+      <td>${l.name}</td>
+      <td style="font-size:0.78rem;">${l.email}</td>
+      <td>${l.phone}</td>
+      <td>${l.type}</td>
+      <td style="max-width:200px;font-size:0.78rem;line-height:1.4;">${l.reason}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+function exportCSV(){
+  const leads = JSON.parse(localStorage.getItem(DB)||'[]');
+  if(!leads.length) return;
+  const rows = leads.map(l=>`"${l.date}","${l.name}","${l.email}","${l.phone}","${l.type}","${l.reason}"`);
+  const csv = '\ufeff' + 'תאריך,שם,אימייל,וואטסאפ,סוג עסק,סיבה\n' + rows.join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download = 'pixi-waitlist.csv';
+  a.click();
+}
+document.getElementById('admin-overlay').addEventListener('click', e => {
+  if(e.target === document.getElementById('admin-overlay')) closeAdmin();
+});
+</script>
+</body>
+</html>

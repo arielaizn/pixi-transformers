@@ -711,10 +711,12 @@ const CODE = 'pixibot2026';
 })();
 
 // ── Form submit ──
+const WEBHOOK = 'https://hook.us1.make.com/fe8dhph5k9mvus528mje3czpbmndpyy5';
+
 document.getElementById('wl-form').addEventListener('submit', function(e){
   e.preventDefault();
   const d = {
-    date: new Date().toLocaleString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+    date:   new Date().toLocaleString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
     name:   document.getElementById('f-name').value.trim(),
     email:  document.getElementById('f-email').value.trim(),
     phone:  document.getElementById('f-phone').value.trim(),
@@ -723,26 +725,25 @@ document.getElementById('wl-form').addEventListener('submit', function(e){
   };
   if(!d.name || !d.email || !d.phone) return;
 
-  // Save locally
-  const leads = JSON.parse(localStorage.getItem(DB) || '[]');
-  leads.push(d);
-  localStorage.setItem(DB, JSON.stringify(leads));
+  const btn = document.querySelector('.btn-submit');
+  btn.textContent = '...שולח';
+  btn.disabled = true;
 
-  // Try backend
-  fetch('/api/waitlist', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+  fetch(WEBHOOK, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(d)
-  }).catch(()=>{});
+  })
+  .catch(()=>{})
+  .finally(()=>{
+    document.getElementById('wl-form').style.display = 'none';
+    document.getElementById('success-panel').classList.add('show');
 
-  document.getElementById('wl-form').style.display = 'none';
-  document.getElementById('success-panel').classList.add('show');
-
-  // Bump counter
-  const cnt = document.getElementById('cnt');
-  const cur = parseInt(cnt.textContent.replace(/,/g,''));
-  let v2 = cur;
-  const t = setInterval(()=>{ cnt.textContent = (++v2).toLocaleString(); if(v2 >= cur+1) clearInterval(t); }, 50);
+    const cnt = document.getElementById('cnt');
+    const cur = parseInt(cnt.textContent.replace(/,/g,''));
+    let v2 = cur;
+    const t = setInterval(()=>{ cnt.textContent = (++v2).toLocaleString(); if(v2 >= cur+1) clearInterval(t); }, 50);
+  });
 });
 
 // ── Admin ──
